@@ -88,9 +88,6 @@ $ accn_to_fasta -b accn_list -d test.fna
 
 # stdin으로 전달
 $ cat accn_list | accn_to_fasta - -d test.fna
-```
-
-```
 >Accn1 Gangdaniel Dalmeun Imo
 NAANEUNSARAMGANGDANIELDALMEUNIMOGADASIBOGEDOENEUNGEDASIGEUTT
 AECHEOREOMANDAMGEEOMMABOMYEONNEUKKYEOJINEUNGEOLSUDOITNEUNGEO
