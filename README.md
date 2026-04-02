@@ -8,6 +8,14 @@ BLAST 결과의 accession을 기반으로 FASTA 파일에서 해당 sequence를 
 >
 > _추후 benchmark 추가 예정_
 
+## Download
+
+2가지 방법으로 사용할 수 있습니다.
+
+### 1. Release에 등록된, build가 완료된 accn_to_fasta 사용 (권장)
+
+### 2. git의 구조를 다운 받은 후, `cargo build --release` 를 하여 build 후 사용
+
 ---
 
 ## Usage
