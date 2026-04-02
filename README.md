@@ -48,7 +48,7 @@ accn_to_fasta [OPTIONS] [INPUT]
 
 ## Examples
 
-아래 예시는 `test.fna`를 기준으로 작성되었습니다.  
+아래 예시는 `test/`를 기준으로 작성되었습니다.  
 추출된 sequence는 `>` 리다이렉션을 통해 파일로 저장할 수 있습니다.
 
 ### 1. Accession으로 검색
