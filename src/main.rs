@@ -296,21 +296,24 @@ fn search_local_fasta(
         raw_buf.clear();
         let n = reader.read_until(b'\n', &mut raw_buf)?;
         if n == 0 { break; }
+        // trim trailing \r\n
+        let len = raw_buf.len();
+        let trimmed_len = raw_buf[..len].iter().rev()
+            .take_while(|&&b| b == b'\n' || b == b'\r')
+            .count();
+        raw_buf.truncate(len - trimmed_len);
 
-        if raw_buf.first() == Some(&b'>') {
-            // ── Header 라인 ──────────────────────────────────────────────────
-            // trim trailing \r\n (header에서만 필요)
-            let len = raw_buf.len();
-            let trimmed_len = raw_buf[..len].iter().rev()
-                .take_while(|&&b| b == b'\n' || b == b'\r')
-                .count();
-            raw_buf.truncate(len - trimmed_len);
+        let lossy_buf;
+        let line: &str = match std::str::from_utf8(&raw_buf) {
+            Ok(s) => s,
+            Err(_) => {
+                lossy_buf = String::from_utf8_lossy(&raw_buf).into_owned();
+                &lossy_buf
+            }
+        };
 
-            // UTF-8 변환은 header 라인에서만 수행 (서열 라인은 바이트 직접 처리)
-            let line_cow = String::from_utf8_lossy(&raw_buf);
-            let line: &str = &line_cow;
-
-            // 이전 시퀀스가 끝날 때 seq_count 증가
+        if line.starts_with('>') {
+            // [1] 이전 시퀀스가 끝날 때 seq_count 증가 (Vec 대신 processing 플래그로 판단)
             if processing {
                 seq_count += 1;
                 if seq_count % 10000 == 0 {
@@ -321,6 +324,7 @@ fn search_local_fasta(
             // [3] accession 한 번만 추출 (매칭 체크 + remove() 모두 재사용)
             let accn_for_default = if !args.contain && !args.last {
                 let raw = if let Some((a, _)) = line.split_once(' ') { a } else { line };
+                // [3] char_indices().nth(1) → &raw[1..] 로 직접 슬라이싱 ('>'는 항상 1바이트 ASCII)
                 if raw.len() > 1 { Some(&raw[1..]) } else { None }
             } else {
                 None
@@ -328,18 +332,24 @@ fn search_local_fasta(
 
             // 매칭 모드에 따라 다른 로직 적용
             let found_match = if args.contain {
+                // contain 모드: 전체 header에 검색 문자열이 포함되는지 확인
                 uniq_subjects.iter().any(|pattern| line.contains(pattern.as_str()))
             } else if args.last {
+                // last 모드: header가 검색 문자열로 끝나는지 확인
                 uniq_subjects.iter().any(|pattern| line.ends_with(pattern.as_str()))
             } else {
+                // 기본 모드: accession이 검색 문자열로 시작하는지 확인
                 accn_for_default.map_or(false, |a| uniq_subjects.contains(a))
             };
 
             // exclude 모드에 따라 processing 로직을 다르게 적용
             if args.exclude {
+                // exclude 모드: 매칭되지 않는 시퀀스만 처리
                 processing = !found_match;
             } else {
+                // include 모드: 매칭되는 시퀀스만 처리
                 processing = found_match;
+                // [3] 기본 모드 early termination: 추출해둔 accn_for_default 재사용
                 if found_match {
                     if let Some(a) = accn_for_default {
                         uniq_subjects.remove(a);
@@ -347,27 +357,19 @@ fn search_local_fasta(
                 }
             }
 
+            // [1] header 라인 즉시 출력 (Vec 누적 없이)
             if processing {
                 out.write_all(line.as_bytes())?;
                 out.write_all(b"\n")?;
             }
         } else if processing {
-            // ── 서열 라인 (출력 대상) ────────────────────────────────────────
-            // UTF-8 변환 없이 바이트 직접 출력.
-            // read_until은 '\n'을 raw_buf에 포함시키므로 그대로 write 가능.
-            // Windows 줄바꿈(\r\n)만 처리.
-            if raw_buf.ends_with(b"\r\n") {
-                out.write_all(&raw_buf[..raw_buf.len() - 2])?;
-                out.write_all(b"\n")?;
-            } else {
-                out.write_all(&raw_buf)?; // '\n' 포함
-            }
+            // [1] sequence 라인 즉시 출력 (Vec 누적 없이)
+            out.write_all(line.as_bytes())?;
+            out.write_all(b"\n")?;
         }
-        // ── 서열 라인 (출력 불필요) ──────────────────────────────────────────
-        // processing == false && !starts_with('>'):
-        // trim도 UTF-8 변환도 하지 않고 즉시 다음 라인으로
 
-        // early termination
+        // exclude 모드가 아닐 때만 early termination 적용
+        // exclude 모드에서는 모든 파일을 읽어야 함
         if !args.exclude && !processing && uniq_subjects.is_empty() {
             break;
         }
