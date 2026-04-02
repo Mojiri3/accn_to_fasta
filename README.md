@@ -1,6 +1,7 @@
 # accn_to_fasta
 
-BLAST 결과의 accession을 기반으로 FASTA 파일에서 해당 sequence를 추출합니다.
+TSV 구조를 기반으로 FASTA 파일에서 해당 sequence를 추출합니다.
+개발 목적은 BLAST TSV format에서 accession field에 대해 sequence를 편하게 추출하기 위함입니다만, TSV 형식만 맞춰진다면 추출할 수 있고, accession이 아니라 header 정보를 기반으로 추출할 수도 있습니다.
 
 `seqkit grep`, `seqtk subseq`과 유사한 기능을 제공하며, 처리 속도가 더 빠릅니다.
 
