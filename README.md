@@ -7,7 +7,7 @@ TSV 구조를 기반으로 FASTA 파일에서 해당 sequence를 추출합니다
 
 > **Benchmark** — genome sequence FASTA (sequence 1,404,310개 / 363 GB / 평균 길이 272,225.3 bp / 최소 84 bp / 최대 1,007,622,168 bp) 에서 random accession 100개를 query로 사용한 결과입니다.
 >
-> _추후 benchmark 추가 예정_
+> <img width="829" height="577" alt="benchmark" src="https://github.com/user-attachments/assets/af7032ad-0284-42f5-a7be-7ebd8858e3ae" />
 
 ## Download
 
