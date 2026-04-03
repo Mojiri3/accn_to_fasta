@@ -127,7 +127,7 @@ NAANEUNSARAMGANGDANIELDALMEUNIMOGADASIBOGEDOENEUNGEDASIGEUTT
 ...
 ```
 
-#### Last 모드 (`-l`) — header가 문자열로 끝나는 경우 매칭
+#### Last 모드 (`-l`) — header가 특정 문자열로 끝나는 경우 매칭
 
 ```bash
 $ accn_to_fasta o -d test.fna -l
